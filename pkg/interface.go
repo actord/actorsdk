@@ -1,4 +1,4 @@
-package pkg
+package actorsdk
 
 type ActordSDK interface {
 	FindActors(fsmID string, filters []FindFilter) ([]Actor, error)
