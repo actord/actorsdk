@@ -38,6 +38,25 @@ func (sdk *actorSDK) FindActors(fsmID string, filters []FindFilter) ([]Actor, er
 	return response.Actors, nil
 }
 
+func (sdk *actorSDK) GetActorByRef(fsmID, ref string) (Actor, error) {
+	var response struct {
+		Actor Actor  `json:"actor"`
+		Error string `json:"error"`
+	}
+	err := sdk.sendRequest("get_actor", map[string]interface{}{
+		"fsm_id":    fsmID,
+		"actor_ref": ref,
+	}, &response)
+	if err != nil {
+		return response.Actor, err
+	}
+	if response.Error != "" {
+		return response.Actor, newErrorFromSDKResponse(response.Error)
+	}
+
+	return response.Actor, nil
+}
+
 func (sdk *actorSDK) sendRequest(method string, data map[string]interface{}, response interface{}) error {
 	url := fmt.Sprintf("%s/%s", sdk.endpoint, method)
 

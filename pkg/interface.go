@@ -2,6 +2,7 @@ package actorsdk
 
 type ActordSDK interface {
 	FindActors(fsmID string, filters []FindFilter) ([]Actor, error)
+	GetActorByRef(fsmID, ref string) (Actor, error)
 }
 
 func NewActorSDK(endpoint, orgID, deploymentID string) (ActordSDK, error) {
