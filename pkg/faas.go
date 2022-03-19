@@ -27,6 +27,11 @@ type FaaS struct {
 	executeFunc ExecuteFunc
 }
 
+type FaaSResponse struct {
+	Response interface{} `json:"response"`
+	Error    string      `json:"error,omitempty"`
+}
+
 func NewFaaS(revision string, executeFunc ExecuteFunc) (*FaaS, error) {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -73,19 +78,23 @@ func (f *FaaS) handleExecute(w http.ResponseWriter, r *http.Request) {
 	inputDecoder := json.NewDecoder(r.Body)
 
 	output, err := f.executeFunc(r, inputDecoder)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	response := FaaSResponse{
+		Response: output,
 	}
-
-	response, err := json.Marshal(output)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		statusErr, ok := err.(StatusError)
+		if !ok {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		response.Error = statusErr.Error()
 	}
-
 	w.WriteHeader(200)
-	w.Write(response)
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 }
 
 func (f *FaaS) handleHealthcheck(w http.ResponseWriter, _ *http.Request) {

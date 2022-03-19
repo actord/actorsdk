@@ -12,3 +12,23 @@ func newErrorFromSDKResponse(error string) error {
 		return errors.New(error)
 	}
 }
+
+type StatusError struct {
+	error      string
+	statusCode int
+}
+
+func (err StatusError) Error() string {
+	return err.error
+}
+
+func (err StatusError) StatusCode() int {
+	return err.statusCode
+}
+
+func NewStatusError(statusCode int, error string) StatusError {
+	return StatusError{
+		statusCode: statusCode,
+		error:      error,
+	}
+}
