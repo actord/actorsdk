@@ -9,7 +9,7 @@ import (
 	"reflect"
 )
 
-type ExecuteFunc func(inputDecoder *json.Decoder) (interface{}, error)
+type ExecuteFunc func(r *http.Request, inputDecoder *json.Decoder) (interface{}, error)
 
 type FaaS struct {
 	Port           string
@@ -72,7 +72,7 @@ func (f *FaaS) handleExecute(w http.ResponseWriter, r *http.Request) {
 
 	inputDecoder := json.NewDecoder(r.Body)
 
-	output, err := f.executeFunc(inputDecoder)
+	output, err := f.executeFunc(r, inputDecoder)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
