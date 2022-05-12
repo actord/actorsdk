@@ -3,8 +3,10 @@ package actorsdk
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -55,6 +57,25 @@ func (sdk *actorSDK) GetActorByRef(fsmID, ref string) (Actor, error) {
 	}
 
 	return response.Actor, nil
+}
+
+func (sdk *actorSDK) Resource(requestType ResourceRequest, branch, repo string) error {
+	var response struct {
+		Error *string `json:"error"`
+	}
+	err := sdk.sendRequest(string(requestType), map[string]interface{}{
+		"repo":   repo,
+		"branch": branch,
+	}, &response)
+	if err != nil {
+		log.Println("sdk error")
+		return err
+	}
+	if response.Error != nil {
+		log.Println("error from actord")
+		return errors.New(*response.Error)
+	}
+	return nil
 }
 
 func (sdk *actorSDK) sendRequest(method string, data map[string]interface{}, response interface{}) error {
