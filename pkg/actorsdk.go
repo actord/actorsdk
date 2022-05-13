@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -78,24 +79,61 @@ func (sdk *actorSDK) Resource(requestType ResourceRequest, branch, repo string) 
 	return nil
 }
 
-func (sdk *actorSDK) sendRequest(method string, data map[string]interface{}, response interface{}) error {
-	url := fmt.Sprintf("%s/%s", sdk.endpoint, method)
+func (sdk *actorSDK) ResourceRead(branch, repo, path string) (io.ReadCloser, error) {
+	resp, err := sdk.sendRequestResp("resource/read", map[string]interface{}{
+		"branch": branch,
+		"repo":   repo,
+		"path":   path,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body, nil
+}
+
+func (sdk *actorSDK) ResourceWriteString(branch, repo, path, body string) error {
+	var response struct {
+		Error *string `json:"error"`
+	}
+	err := sdk.sendRequest("resource/write/string", map[string]interface{}{
+		"branch": branch,
+		"repo":   repo,
+		"path":   path,
+		"body":   body,
+	}, &response)
+	if err != nil {
+		log.Println("err1", err)
+		return err
+	}
+	if response.Error != nil {
+		err = errors.New(*response.Error)
+	}
+	return err
+}
+
+func (sdk *actorSDK) sendRequestResp(method string, data map[string]interface{}) (*http.Response, error) {
+	url := fmt.Sprintf("%s/api/%s", sdk.endpoint, method)
 
 	body := new(bytes.Buffer)
 	if err := json.NewEncoder(body).Encode(data); err != nil {
-		return err
+		return nil, err
 	}
 
 	req, err := http.NewRequest("POST", url, body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("ACTORD_ORG_ID", sdk.orgID)
 	req.Header.Add("ACTORD_DEPLOYMENT_ID", sdk.deploymentID)
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+
+	return client.Do(req)
+}
+
+func (sdk *actorSDK) sendRequest(method string, data map[string]interface{}, response interface{}) error {
+	resp, err := sdk.sendRequestResp(method, data)
 	if err != nil {
 		return err
 	}

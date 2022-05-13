@@ -1,5 +1,7 @@
 package actorsdk
 
+import "io"
+
 type ResourceRequest string
 
 const (
@@ -12,6 +14,8 @@ type ActordSDK interface {
 	FindActors(fsmID string, filters []FindFilter) ([]Actor, error)
 	GetActorByRef(fsmID, ref string) (Actor, error)
 	Resource(requestType ResourceRequest, branch, repo string) error
+	ResourceRead(branch, repo, path string) (io.ReadCloser, error)
+	ResourceWriteString(branch, repo, path, body string) error
 }
 
 func NewActorSDK(endpoint, orgID, deploymentID string) (ActordSDK, error) {
