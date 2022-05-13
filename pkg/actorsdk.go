@@ -112,7 +112,7 @@ func (sdk *actorSDK) ResourceWriteString(branch, repo, path, body string) error 
 }
 
 func (sdk *actorSDK) sendRequestResp(method string, data map[string]interface{}) (*http.Response, error) {
-	url := fmt.Sprintf("%s/api/%s", sdk.endpoint, method)
+	url := fmt.Sprintf("%s/coreapi/%s", sdk.endpoint, method)
 
 	body := new(bytes.Buffer)
 	if err := json.NewEncoder(body).Encode(data); err != nil {
