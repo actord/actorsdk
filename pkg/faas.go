@@ -87,13 +87,9 @@ func (f *FaaS) Listen() error {
 	http.HandleFunc("/healthcheck", WithLogging(f.handleHealthcheck))
 
 	if f.endpoints != nil {
-		log.Println("has endpoints")
 		for endpoint, handlerFunc := range f.endpoints {
-			log.Println("add handler for endpoint:", endpoint)
 			http.HandleFunc("/"+endpoint, WithLogging(handlerFunc))
 		}
-	} else {
-		log.Println("endpoints is not provided")
 	}
 
 	log.Printf("Listen and serve at :%s, revision: %s", f.Port, f.revision)
