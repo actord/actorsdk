@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"time"
 )
 
 type ExecuteFunc func(r *http.Request, inputDecoder *json.Decoder) (interface{}, error)
@@ -25,6 +26,7 @@ type FaaS struct {
 	revision string
 
 	executeFunc ExecuteFunc
+	endpoints   map[string]http.HandlerFunc
 }
 
 type FaaSResponse struct {
@@ -32,7 +34,7 @@ type FaaSResponse struct {
 	Error    string      `json:"error,omitempty"`
 }
 
-func NewFaaS(revision string, executeFunc ExecuteFunc) (*FaaS, error) {
+func NewFaaS(revision string, executeFunc ExecuteFunc, endpoints map[string]http.HandlerFunc) (*FaaS, error) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8090"
@@ -48,6 +50,7 @@ func NewFaaS(revision string, executeFunc ExecuteFunc) (*FaaS, error) {
 		DeploymentID:   deploymentID,
 		revision:       revision,
 		executeFunc:    executeFunc,
+		endpoints:      endpoints,
 	}
 
 	return f, nil
@@ -64,9 +67,30 @@ func (f *FaaS) SDK() ActordSDK {
 	return f.sdk
 }
 
+func WithLogging(h http.HandlerFunc) http.HandlerFunc {
+	logFn := func(rw http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		uri := r.RequestURI
+		method := r.Method
+		h(rw, r) // serve the original request
+
+		duration := time.Since(start)
+
+		log.Printf("%s %s duration=%dmsec\n", method, uri, duration.Milliseconds())
+	}
+	return logFn
+}
+
 func (f *FaaS) Listen() error {
-	http.HandleFunc("/execute", f.handleExecute)
-	http.HandleFunc("/healthcheck", f.handleHealthcheck)
+	http.HandleFunc("/execute", WithLogging(f.handleExecute))
+	http.HandleFunc("/healthcheck", WithLogging(f.handleHealthcheck))
+
+	if f.endpoints != nil {
+		for endpoint, handlerFunc := range f.endpoints {
+			http.HandleFunc(endpoint, WithLogging(handlerFunc))
+		}
+	}
 
 	log.Printf("Listen and serve at :%s, revision: %s", f.Port, f.revision)
 	fmt.Println("FAAS READY.")
