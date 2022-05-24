@@ -27,13 +27,14 @@ func newActorSDK(endpoint, orgID, deploymentID string) (*actorSDK, error) {
 	return sdk, nil
 }
 
-func (sdk *actorSDK) FindActors(fsmID string, filters []FindFilter) ([]Actor, error) {
+func (sdk *actorSDK) FindActors(appID, fsmPath string, filters []FindFilter) ([]Actor, error) {
 	var response struct {
 		Actors []Actor `json:"actors"`
 	}
 	err := sdk.sendRequest("find_actors", map[string]interface{}{
-		"fsm_id":  fsmID,
-		"filters": filters,
+		"app_id":   appID,
+		"fsm_path": fsmPath,
+		"filters":  filters,
 	}, &response)
 	if err != nil {
 		panic(err)
@@ -41,13 +42,14 @@ func (sdk *actorSDK) FindActors(fsmID string, filters []FindFilter) ([]Actor, er
 	return response.Actors, nil
 }
 
-func (sdk *actorSDK) GetActorByRef(fsmID, ref string) (Actor, error) {
+func (sdk *actorSDK) GetActorByRef(appID, fsmPath, ref string) (Actor, error) {
 	var response struct {
 		Actor Actor  `json:"actor"`
 		Error string `json:"error"`
 	}
 	err := sdk.sendRequest("get_actor", map[string]interface{}{
-		"fsm_id":    fsmID,
+		"app_id":    appID,
+		"fsm_path":  fsmPath,
 		"actor_ref": ref,
 	}, &response)
 	if err != nil {
