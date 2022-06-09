@@ -113,6 +113,10 @@ func (sdk *actorSDK) ResourceWriteString(branch, repo, path, body string) error 
 	return err
 }
 
+func (sdk *actorSDK) SendRequestResp(method string, data map[string]interface{}) (*http.Response, error) {
+	return sdk.sendRequestResp(method, data)
+}
+
 func (sdk *actorSDK) sendRequestResp(method string, data map[string]interface{}) (*http.Response, error) {
 	url := fmt.Sprintf("%s/coreapi/%s", sdk.endpoint, method)
 
@@ -132,6 +136,10 @@ func (sdk *actorSDK) sendRequestResp(method string, data map[string]interface{})
 	client := &http.Client{}
 
 	return client.Do(req)
+}
+
+func (sdk *actorSDK) SendRequest(method string, data map[string]interface{}, response interface{}) error {
+	return sdk.SendRequest(method, data, response)
 }
 
 func (sdk *actorSDK) sendRequest(method string, data map[string]interface{}, response interface{}) error {

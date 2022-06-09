@@ -1,6 +1,9 @@
 package actorsdk
 
-import "io"
+import (
+	"io"
+	"net/http"
+)
 
 type ResourceRequest string
 
@@ -16,6 +19,10 @@ type ActordSDK interface {
 	Resource(requestType ResourceRequest, branch, repo string) error
 	ResourceRead(branch, repo, path string) (io.ReadCloser, error)
 	ResourceWriteString(branch, repo, path, body string) error
+
+	// internal things
+	SendRequestResp(method string, data map[string]interface{}) (*http.Response, error)
+	SendRequest(method string, data map[string]interface{}, response interface{}) error
 }
 
 func NewActorSDK(endpoint, orgID, deploymentID string) (ActordSDK, error) {
