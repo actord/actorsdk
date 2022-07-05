@@ -139,7 +139,7 @@ func (sdk *actorSDK) sendRequestResp(method string, data map[string]interface{})
 }
 
 func (sdk *actorSDK) SendRequest(method string, data map[string]interface{}, response interface{}) error {
-	return sdk.SendRequest(method, data, response)
+	return sdk.sendRequest(method, data, response)
 }
 
 func (sdk *actorSDK) sendRequest(method string, data map[string]interface{}, response interface{}) error {
