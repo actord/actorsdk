@@ -19,6 +19,7 @@ type ActordSDK interface {
 	Resource(requestType ResourceRequest, branch, repo string) error
 	ResourceRead(branch, repo, path string) (io.ReadCloser, error)
 	ResourceWriteString(branch, repo, path, body string) error
+	ResourceDirList(branch, repo, path string) ([]DirItem, error)
 
 	// internal things
 	SendRequestResp(method string, data map[string]interface{}) (*http.Response, error)
@@ -57,4 +58,12 @@ type LogicAwaitEvent struct {
 	ID                string                `json:"id"`
 	Logic             string                `json:"logic"`
 	AllowedEventTypes []LogicAwaitEventType `json:"allowed_event_types"`
+}
+
+type DirItem struct {
+	IsDir    bool   `json:"isDir"`
+	Name     string `json:"name"`
+	Size     int64  `json:"size"`
+	Mode     uint32 `json:"mode"`
+	ModeTime int64  `json:"modeTime"`
 }

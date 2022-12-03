@@ -113,6 +113,23 @@ func (sdk *actorSDK) ResourceWriteString(branch, repo, path, body string) error 
 	return err
 }
 
+func (sdk *actorSDK) ResourceDirList(branch, repo, path string) ([]DirItem, error) {
+	var response struct {
+		Content []DirItem
+	}
+	err := sdk.sendRequest("resource/dir/list", map[string]interface{}{
+		"branch": branch,
+		"repo":   repo,
+		"path":   path,
+	}, &response)
+	if err != nil {
+		log.Println("err1", err)
+		return nil, err
+	}
+
+	return response.Content, nil
+}
+
 func (sdk *actorSDK) SendRequestResp(method string, data map[string]interface{}) (*http.Response, error) {
 	return sdk.sendRequestResp(method, data)
 }
